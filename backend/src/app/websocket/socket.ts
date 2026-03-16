@@ -1,9 +1,9 @@
-import {Server} from "socket.io"
-import {server} from "../app.ts"
-import type {Server as ServerType} from "socket.io"
+import { io } from "../../index.ts";
 
-const io:ServerType=new Server(server)
-
-io.on("connection",(socket)=>{
-    console.log("A user connected");
-})
+io.on("connection", (socket) => {
+  console.log("user connected:", socket.id);
+  io.emit("to_client","Hello from server")
+  socket.on("message",(data)=>{
+    console.log(data)
+  })
+});
