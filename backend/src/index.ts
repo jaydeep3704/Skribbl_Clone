@@ -3,13 +3,15 @@ import dotenv from "dotenv"
 import { createServer } from "http";
 import cors from 'cors'
 import { Server } from "socket.io";
+import { handleConnection } from "./app/websocket/socket.ts";
+
 dotenv.config();
 const app=express();
 
 const httpServer=createServer(app)
 
 const cors_options={
-    origin:"http://localhost:3000",
+    origin:"*",
     credentials:true,
     methods:["GET","POST"]
 }
@@ -26,10 +28,5 @@ httpServer.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`);
 })
 
-io.on("connection", (socket) => {
-  console.log("user connected:", socket.id);
-  socket.on("message",(data)=>{
-    console.log(data)
-  })
+io.on("connection",handleConnection)
 
-});
