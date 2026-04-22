@@ -1,6 +1,6 @@
-import type { Socket } from "socket.io";
+import type { Server, Socket } from "socket.io";
 
-interface Player{
+export interface Player{
     socket:string,
     username:string
 }
@@ -10,14 +10,15 @@ interface Room{
     host:string
 }
 
-
-
-
-
-
-class Game{
+ class Game{
+     private io:Server;
      GameState:Map<string,Room>=new Map();
      
+    constructor(socketServer:Server){
+        this.io=socketServer
+    }
+
+
      roomExists(roomId:string):boolean{
         return this.GameState.has(roomId)
      }
@@ -34,11 +35,12 @@ class Game{
             username
         })
         socket.join(roomId)
-        socket.to(roomId).emit("room_joined",`User ${username} joined the room`)
+        this.io.to(roomId).emit("room_joined",`User ${username} joined the room`)
      }
 
      joinRoom(socket:Socket,roomId:string,username:string){
          const room=this.GameState.get(roomId)
+         if(!room) console.log("This room doesn't exist")
          const alreadyJoined=room?.players.forEach((player)=>{
             if(player.socket===socket.id){
                 return true;
@@ -50,11 +52,26 @@ class Game{
             username
          })
          socket.join(roomId)
-         socket.to(roomId).emit("room_joined",`User ${username} joined the room`,room?.players)
+         this.io.to(roomId).emit("room_joined",`User ${username} joined the room`)
+           this.io.to(roomId).emit("players",room?.players)
      }
 
      leaveRoom(socket:Socket,roomId:string){
+         const room=this.GameState.get(roomId)!
+         room.players=room?.players.filter((player)=>{
+             if(player.socket!=socket.id){
+                return player
+             }
+         })
          
+         this.io.to(roomId).emit("players",room.players)
+         if(room.players.length==0){
+            this.GameState.delete(roomId)
+            console.log("Room deleted")
+         }
+         else{
+            room.host=room.players[0]?.socket as string
+         }
      }
 
      printRoomState(roomId:string){
@@ -64,6 +81,4 @@ class Game{
      }
 }
 
-const game=new Game();
-
-export {game}
+export {Game}

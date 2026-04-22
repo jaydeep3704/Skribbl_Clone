@@ -4,6 +4,7 @@ import { createServer } from "http";
 import cors from 'cors'
 import { Server } from "socket.io";
 import { handleConnection } from "./app/websocket/socket.ts";
+import { Game } from "./app/websocket/handlers/game.ts";
 
 dotenv.config();
 const app=express();
@@ -29,4 +30,6 @@ httpServer.listen(PORT,()=>{
 })
 
 io.on("connection",handleConnection)
+const game=new Game(io);
 
+export {game}
