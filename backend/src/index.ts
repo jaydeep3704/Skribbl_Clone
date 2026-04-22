@@ -32,4 +32,12 @@ httpServer.listen(PORT,()=>{
 io.on("connection",handleConnection)
 const game=new Game(io);
 
+process.on("SIGINT", () => {
+  console.log("Shutting down server...");
+
+  httpServer.close(() => {
+    console.log("Server closed");
+    process.exit(0);
+  });
+});
 export {game}
